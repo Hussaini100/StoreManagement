@@ -1,0 +1,27 @@
+﻿
+<nav class="flex-column">
+    <div class="nav-item px-3 py-2">
+        <a class="nav-link @GetNavLinkClass("/")" href="/">
+            <i class="fas fa-home"></i> صفحه اصلی
+        </a>
+    </div>
+    <div class="nav-item px-3 py-2">
+        <a class="nav-link @GetNavLinkClass("/admin/products")" href="/admin/products">
+            <i class="fas fa-boxes"></i> مدیریت محصولات
+        </a>
+    </div>
+    <div class="nav-item px-3 py-2">
+        <a class="nav-link @GetNavLinkClass("/admin/products/new")" href="/admin/products/new">
+            <i class="fas fa-plus-circle"></i> افزودن محصول
+        </a>
+    </div>
+</nav>
+
+@code {
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+
+    private string GetNavLinkClass(string url)
+    {
+        return Navigation.Uri.EndsWith(url) ? "active" : "";
+    }
+}

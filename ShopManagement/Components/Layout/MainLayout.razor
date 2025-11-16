@@ -1,0 +1,140 @@
+﻿@* Components/Layout/MainLayout.razor *@
+@inherits LayoutComponentBase
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="~/" />
+
+    <!-- Bootstrap CSS از CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome از CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <!-- Custom CSS - اگر فایل وجود ندارد، موقتاً حذف کنید -->
+    <!-- <link rel="stylesheet" href="css/app.css" /> -->
+    <!-- Project Styles - اگر فایل وجود ندارد، موقتاً حذف کنید -->
+    <!-- <link rel="stylesheet" href="ShopManagement.styles.css" /> -->
+    <!-- استایل‌های داخلی -->
+    <style>
+        /* استایل‌های اصلی را اینجا قرار دهید */
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --success-color: #4cc9f0;
+            --dark-color: #1d3557;
+            --header-height: 80px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            direction: rtl;
+            background: #f8fafc;
+            min-height: 100vh;
+        }
+
+        /* Header Styles */
+        .main-header {
+            background: linear-gradient(135deg, var(--dark-color) 0%, #2c3e50 100%);
+            color: white;
+            height: var(--header-height);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        .header-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 100%;
+            padding: 0 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            gap: 3rem;
+        }
+
+        /* بقیه استایل‌ها... */
+    </style>
+
+    <title>مدیریت فروشگاه</title>
+    <HeadOutlet />
+</head>
+<body>
+    <!-- Header -->
+    <header class="main-header">
+        <div class="header-container">
+            <!-- Logo -->
+            <div class="header-brand">
+                <a href="/" class="brand-link">
+                    <i class="fas fa-store"></i>
+                    <span class="brand-text">مدیریت فروشگاه</span>
+                </a>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="header-nav">
+                <a class="nav-item @GetNavLinkClass("/")" href="/">
+                    <i class="fas fa-home"></i>
+                    <span class="nav-text">صفحه اصلی</span>
+                </a>
+                <a class="nav-item @GetNavLinkClass("/admin/products")" href="/admin/products">
+                    <i class="fas fa-boxes"></i>
+                    <span class="nav-text">مدیریت محصولات</span>
+                </a>
+                <a class="nav-item @GetNavLinkClass("/admin/products/new")" href="/admin/products/new">
+                    <i class="fas fa-plus-circle"></i>
+                    <span class="nav-text">افزودن محصول</span>
+                </a>
+            </nav>
+
+            <!-- User Info -->
+            <div class="header-user">
+                <div class="user-info">
+                    <i class="fas fa-user-circle"></i>
+                    <span class="user-text">خوش آمدید، مدیر سیستم</span>
+                </div>
+                <a href="https://docs.microsoft.com/aspnet/" target="_blank" class="about-link">
+                    <i class="fas fa-info-circle"></i>
+                    <span class="about-text">درباره سیستم</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="content-area">
+            @Body
+        </div>
+    </main>
+
+    <!-- Bootstrap JS از CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Blazor Script -->
+    <script src="_framework/blazor.server.js"></script>
+</body>
+</html>
+
+@code {
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+
+    private string GetNavLinkClass(string url)
+    {
+        return Navigation.Uri.EndsWith(url) ? "active" : "";
+    }
+}
