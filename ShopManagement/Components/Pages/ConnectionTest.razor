@@ -1,0 +1,42 @@
+﻿@page "/connection-test"
+@inject IJSRuntime JSRuntime
+
+<PageTitle>تست Connection</PageTitle>
+
+<div class="container mt-4">
+    <h3>تست Connection Blazor Server</h3>
+
+    <div class="card mt-3">
+        <div class="card-header">
+            <h5>تست ساده JavaScript</h5>
+        </div>
+        <div class="card-body">
+            <button class="btn btn-primary" onclick="testJavaScript()">
+                تست JavaScript خالص
+            </button>
+
+            <button class="btn btn-success ms-2" @onclick="TestBlazorClick">
+                تست Blazor Click
+            </button>
+
+            <div class="mt-3">
+                <p id="status">وضعیت: منتظر تست...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function testJavaScript() {
+        document.getElementById('status').textContent = '✅ JavaScript کار می‌کند!';
+        alert('JavaScript خالص کار می‌کند!');
+    }
+</script>
+
+@code {
+    private async Task TestBlazorClick()
+    {
+        await JSRuntime.InvokeVoidAsync("alert", "Blazor Click کار می‌کند!");
+        await JSRuntime.InvokeVoidAsync("eval", "document.getElementById('status').textContent = '✅ Blazor Connection کار می‌کند!'");
+    }
+}

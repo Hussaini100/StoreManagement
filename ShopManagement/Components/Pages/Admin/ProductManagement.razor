@@ -1,0 +1,166 @@
+﻿@page "/admin/products"
+@using ShopManagement.Models
+@using ShopManagement.Services
+@inject IProductService ProductService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<PageTitle>مدیریت محصولات</PageTitle>
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h3 class="text-primary">مدیریت محصولات</h3>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-success" @onclick="AddNewProduct">
+                <i class="fas fa-plus"></i> افزودن محصول جدید
+            </button>
+        </div>
+    </div>
+
+    @if (products == null)
+    {
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (!products.Any())
+    {
+        <div class="alert alert-info text-center">
+            هیچ محصولی یافت نشد.
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>نام محصول</th>
+                                <th>دسته‌بندی</th>
+                                <th>قیمت</th>
+                                <th>موجودی</th>
+                                <th>عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var product in products)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@product.Name</strong>
+                                        @if (!string.IsNullOrEmpty(product.Description))
+                                        {
+                                            <br />
+                                            <small class="text-muted">@GetTruncatedDescription(product.Description)</small>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-secondary">@product.Category</span>
+                                    </td>
+                                    <td>
+                                        <span class="text-success fw-bold">@product.Price.ToString("N0") تومان</span>
+                                    </td>
+                                    <td>
+                                        <span class="@GetStockBadgeClass(product.StockQuantity)">
+                                            @product.StockQuantity
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-primary" @onclick="() => EditProduct(product.Id)">
+                                                <i class="fas fa-edit"></i> ویرایش
+                                            </button>
+                                            <button class="btn btn-outline-danger" @onclick="() => DeleteProduct(product.Id)">
+                                                <i class="fas fa-trash"></i> حذف
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<Product>? products;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProducts();
+    }
+
+    private async Task LoadProducts()
+    {
+        try
+        {
+            products = await ProductService.GetProductsAsync();
+            Console.WriteLine($"Loaded {products?.Count} products");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading products: {ex.Message}");
+            await JSRuntime.InvokeVoidAsync("alert", "خطا در بارگذاری محصولات");
+        }
+    }
+
+    private void AddNewProduct()
+    {
+        Navigation.NavigateTo("/admin/products/new");
+    }
+
+    private void EditProduct(int id)
+    {
+        Navigation.NavigateTo($"/admin/products/edit/{id}");
+    }
+
+    private async Task DeleteProduct(int id)
+    {
+        var confirmed = await JSRuntime.InvokeAsync<bool>("confirm", "آیا از حذف این محصول اطمینان دارید؟");
+        if (confirmed)
+        {
+            try
+            {
+                var result = await ProductService.DeleteProductAsync(id);
+                if (result)
+                {
+                    await JSRuntime.InvokeVoidAsync("alert", "محصول با موفقیت حذف شد");
+                    await LoadProducts();
+                }
+                else
+                {
+                    await JSRuntime.InvokeVoidAsync("alert", "خطا در حذف محصول");
+                }
+            }
+            catch (Exception ex)
+            {
+                await JSRuntime.InvokeVoidAsync("alert", $"خطا در حذف محصول: {ex.Message}");
+            }
+        }
+    }
+
+    private string GetStockBadgeClass(int stock)
+    {
+        return stock switch
+        {
+            0 => "badge bg-danger",
+            < 5 => "badge bg-warning",
+            _ => "badge bg-success"
+        };
+    }
+
+    private string GetTruncatedDescription(string description)
+    {
+        if (string.IsNullOrEmpty(description)) return description;
+        return description.Length <= 50 ? description : description.Substring(0, 50) + "...";
+    }
+}

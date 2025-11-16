@@ -1,0 +1,154 @@
+﻿@page "/"
+
+<PageTitle>مدیریت فروشگاه</PageTitle>
+
+<div class="container-fluid">
+    <!-- Welcome Section -->
+    <div class="welcome-section fade-in-up">
+        <h1>به سیستم مدیریت فروشگاه خوش آمدید</h1>
+        <p class="lead">سیستم جامع مدیریت محصولات و موجودی فروشگاه</p>
+    </div>
+
+    <!-- Features Grid -->
+    <div class="row g-4">
+        <div class="col-lg-4 col-md-6">
+            <div class="card feature-card fade-in-up" style="animation-delay: 0.1s">
+                <div class="card-body">
+                    <i class="fas fa-boxes"></i>
+                    <h5 class="card-title">مدیریت محصولات</h5>
+                    <p class="card-text">
+                        مدیریت کامل محصولات، مشاهده لیست محصولات، ویرایش اطلاعات،
+                        حذف محصولات و مدیریت موجودی انبار به صورت حرفه‌ای
+                    </p>
+                    <a href="/admin/products" class="btn btn-primary">
+                        <i class="fas fa-arrow-left me-2"></i>
+                        ورود به مدیریت محصولات
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6">
+            <div class="card feature-card fade-in-up" style="animation-delay: 0.2s">
+                <div class="card-body">
+                    <i class="fas fa-plus-circle"></i>
+                    <h5 class="card-title">افزودن محصول</h5>
+                    <p class="card-text">
+                        افزودن محصول جدید به فروشگاه با مشخصات کامل شامل نام،
+                        توضیحات، قیمت، موجودی و تصویر محصول
+                    </p>
+                    <a href="/admin/products/new" class="btn btn-success">
+                        <i class="fas fa-plus me-2"></i>
+                        افزودن محصول جدید
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4 col-md-6">
+            <div class="card feature-card fade-in-up" style="animation-delay: 0.3s">
+                <div class="card-body">
+                    <i class="fas fa-chart-bar"></i>
+                    <h5 class="card-title">گزارشات و آمار</h5>
+                    <p class="card-text">
+                        مشاهده گزارشات پیشرفته فروش، تحلیل موجودی انبار،
+                        آمار عملکرد و گزارشات مالی به صورت نمودارهای تعاملی
+                    </p>
+                    <button class="btn btn-info">
+                        <i class="fas fa-chart-line me-2"></i>
+                        مشاهده گزارشات
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card fade-in-up" style="animation-delay: 0.4s">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fas fa-tachometer-alt me-2"></i>
+                        آمار سریع سیستم
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3 mb-3">
+                            <div class="stat-item">
+                                <i class="fas fa-box fa-2x text-primary mb-2"></i>
+                                <h3 class="text-primary">@(products?.Count ?? 0)</h3>
+                                <p class="text-muted">تعداد محصولات</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="stat-item">
+                                <i class="fas fa-layer-group fa-2x text-success mb-2"></i>
+                                <h3 class="text-success">@(totalStock ?? 0)</h3>
+                                <p class="text-muted">موجودی کل</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="stat-item">
+                                <i class="fas fa-tags fa-2x text-info mb-2"></i>
+                                <h3 class="text-info">@(categories?.Count ?? 0)</h3>
+                                <p class="text-muted">دسته‌بندی‌ها</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="stat-item">
+                                <i class="fas fa-coins fa-2x text-warning mb-2"></i>
+                                <h3 class="text-warning">@(totalValue?.ToString("N0") ?? "0")</h3>
+                                <p class="text-muted">ارزش موجودی</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<Product>? products;
+    private int? totalStock;
+    private List<string>? categories;
+    private decimal? totalValue;
+
+    [Inject] private IProductService ProductService { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        products = await ProductService.GetProductsAsync();
+
+        if (products != null && products.Any())
+        {
+            totalStock = products.Sum(p => p.StockQuantity);
+            categories = products.Select(p => p.Category).Distinct().ToList();
+            totalValue = products.Sum(p => p.Price * p.StockQuantity);
+        }
+        else
+        {
+            totalStock = 0;
+            categories = new List<string>();
+            totalValue = 0;
+        }
+    }
+}
+
+<style>
+    .stat-item {
+        padding: 1.5rem;
+    }
+
+        .stat-item h3 {
+            font-weight: 800;
+            margin: 0.5rem 0;
+        }
+
+        .stat-item p {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+</style>

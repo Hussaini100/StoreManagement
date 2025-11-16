@@ -1,0 +1,228 @@
+﻿@page "/admin/products/new"
+@page "/admin/products/edit/{ProductId:int}"
+@using ShopManagement.Models
+@using ShopManagement.Services
+@inject IProductService ProductService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+
+<PageTitle>@Title</PageTitle>
+
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h4>@Title</h4>
+        </div>
+        <div class="card-body">
+            <EditForm Model="product" method="post" FormName="myform" OnValidSubmit="HandleSubmit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">نام محصول *</label>
+                            @* <InputText @bind-Value="product.Name" class="form-control" /> *@
+                            <InputText @bind-Value="product.Name" class="form-control" />
+                            <ValidationMessage For="@(() => product.Name)" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">دسته‌بندی *</label>
+                            <InputText @bind-Value="product.Category" class="form-control" />
+                            <ValidationMessage For="@(() => product.Category)" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">توضیحات</label>
+                    <InputTextArea @bind-Value="product.Description" class="form-control" rows="3" />
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">قیمت *</label>
+                            <InputNumber @bind-Value="product.Price" class="form-control" />
+                            <ValidationMessage For="@(() => product.Price)" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">موجودی *</label>
+                            <InputNumber @bind-Value="product.StockQuantity" class="form-control" />
+                            <ValidationMessage For="@(() => product.StockQuantity)" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">آدرس تصویر</label>
+                    <InputText @bind-Value="product.ImageUrl" class="form-control" placeholder="/images/product.jpg" />
+                </div>
+
+                <div class="mb-3 form-check">
+                    <InputCheckbox @bind-Value="product.IsActive" class="form-check-input" />
+                    <label class="form-check-label">فعال</label>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-success" disabled="@isSubmitting">
+                        @(isSubmitting ? "در حال ذخیره..." : "ذخیره محصول")
+                    </button>
+                    @* <submit class="btn btn-success">Save</submit> *@
+                    <button type="button" class="btn btn-secondary ms-2" @onclick="Cancel">انصراف</button>
+                </div>
+            </EditForm>
+
+            @if (!string.IsNullOrEmpty(message))
+            {
+                <div class="alert @(isSuccess ? "alert-success" : "alert-danger") mt-3">
+                    @message
+                </div>
+            }
+        </div>
+
+        <!-- دکمه تست -->
+        <div class="card-footer">
+            <button class="btn btn-info" @onclick="HandleClick">تست کلیک (@clickCount)</button>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private Product product { get; set; } = new();
+    private int clickCount = 0;
+
+    private void HandleClick()
+    {
+        clickCount++;
+        Console.WriteLine($"Button clicked {clickCount} times!");
+        StateHasChanged();
+    }
+
+    [Parameter]
+    public int ProductId { get; set; }
+
+    
+    private string Title = "افزودن محصول جدید";
+    private bool isSubmitting = false;
+    private string message = "";
+    private bool isSuccess = false;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        Console.WriteLine("OnParametersSetAsync called");
+        if (ProductId > 0)
+        {
+            var existingProduct = await ProductService.GetProductByIdAsync(ProductId);
+            if (existingProduct != null)
+            {
+                product = existingProduct;
+                Title = $"ویرایش محصول: {product.Name}";
+            }
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        Console.WriteLine("HandleSubmit called - شروع پردازش فرم");
+
+        if (isSubmitting)
+        {
+            Console.WriteLine("در حال حاضر در حال submit هستیم");
+            return;
+        }
+
+        isSubmitting = true;
+        message = "";
+        StateHasChanged();
+
+        try
+        {
+            Console.WriteLine($"داده‌های محصول - نام: '{product.Name}', دسته: '{product.Category}', قیمت: {product.Price}, موجودی: {product.StockQuantity}");
+
+            // اعتبارسنجی
+            if (string.IsNullOrWhiteSpace(product.Name))
+            {
+                message = "لطفا نام محصول را وارد کنید";
+                isSuccess = false;
+                Console.WriteLine("اعتبارسنجی نام محصول شکست خورد");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(product.Category))
+            {
+                message = "لطفا دسته‌بندی محصول را وارد کنید";
+                isSuccess = false;
+                Console.WriteLine("اعتبارسنجی دسته‌بندی شکست خورد");
+                return;
+            }
+
+            if (product.Price <= 0)
+            {
+                message = "لطفا قیمت معتبری وارد کنید";
+                isSuccess = false;
+                Console.WriteLine("اعتبارسنجی قیمت شکست خورد");
+                return;
+            }
+
+            if (product.StockQuantity < 0)
+            {
+                message = "لطفا تعداد موجودی معتبری وارد کنید";
+                isSuccess = false;
+                Console.WriteLine("اعتبارسنجی موجودی شکست خورد");
+                return;
+            }
+
+            Console.WriteLine("همه اعتبارسنجی‌ها passed");
+
+            if (product.Id == 0)
+            {
+                Console.WriteLine("ایجاد محصول جدید...");
+                var newProduct = await ProductService.CreateProductAsync(product);
+                Console.WriteLine($"محصول ایجاد شد با ID: {newProduct?.Id}");
+                message = "محصول با موفقیت ایجاد شد";
+                isSuccess = true;
+            }
+            else
+            {
+                Console.WriteLine("ویرایش محصول موجود...");
+                await ProductService.UpdateProductAsync(product);
+                message = "محصول با موفقیت ویرایش شد";
+                isSuccess = true;
+            }
+
+            Console.WriteLine("عملیات ذخیره موفقیت‌آمیز بود");
+
+            // تأخیر کوتاه و سپس ناوبری
+            await Task.Delay(2000);
+            Console.WriteLine("در حال ناوبری به صفحه محصولات...");
+            Navigation.NavigateTo("/admin/products");
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"خطا در HandleSubmit: {ex.Message}");
+            Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+            message = $"خطا: {ex.Message}";
+            isSuccess = false;
+        }
+        finally
+        {
+            isSubmitting = false;
+            StateHasChanged();
+            Console.WriteLine("HandleSubmit completed");
+        }
+    }
+
+    private void Cancel()
+    {
+        Console.WriteLine("Cancel clicked");
+        Navigation.NavigateTo("/admin/products");
+    }
+}

@@ -1,0 +1,84 @@
+﻿@page "/debug-test"
+@inject IJSRuntime JSRuntime
+
+<PageTitle>تست دیباگ</PageTitle>
+
+<div class="container mt-4">
+    <h3>تست Event Handling</h3>
+
+    <div class="card mt-3">
+        <div class="card-header">
+            <h5>تست کلیک ساده</h5>
+        </div>
+        <div class="card-body">
+            <button class="btn btn-primary" @onclick="SimpleClick">
+                تست کلیک - باید alert ببینید
+            </button>
+
+            <button class="btn btn-success ms-2" @onclick="AsyncClick">
+                تست کلیک Async
+            </button>
+
+            <div class="mt-3">
+                <strong>آخرین رویداد:</strong> <span class="text-info">@lastEvent</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-header">
+            <h5>تست فرم ساده</h5>
+        </div>
+        <div class="card-body">
+            <form @onsubmit="HandleSubmit" @onsubmit:preventDefault>
+                <input @bind="testInput" class="form-control mb-2" placeholder="متن تست" />
+                <button type="submit" class="btn btn-warning">تست Submit فرم</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card mt-3">
+        <div class="card-header">
+            <h5>تست ناوبری</h5>
+        </div>
+        <div class="card-body">
+            <button class="btn btn-info" @onclick="GoToProducts">
+                برو به مدیریت محصولات
+            </button>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string lastEvent = "هیچ رویدادی ثبت نشده";
+    private string testInput = "";
+
+    private void SimpleClick()
+    {
+        lastEvent = "کلیک ساده در " + DateTime.Now.ToString("HH:mm:ss");
+        StateHasChanged();
+        JSRuntime.InvokeVoidAsync("alert", "کلیک کار کرد! ✅");
+    }
+
+    private async Task AsyncClick()
+    {
+        lastEvent = "کلیک Async در " + DateTime.Now.ToString("HH:mm:ss");
+        StateHasChanged();
+        await Task.Delay(500);
+        await JSRuntime.InvokeVoidAsync("alert", "کلیک Async کار کرد! ✅");
+    }
+
+    private void HandleSubmit()
+    {
+        lastEvent = $"فر Submit شده با متن: '{testInput}' در " + DateTime.Now.ToString("HH:mm:ss");
+        StateHasChanged();
+        JSRuntime.InvokeVoidAsync("alert", $"فرم کار کرد! متن: {testInput}");
+    }
+
+    private void GoToProducts()
+    {
+        lastEvent = "ناوبری به محصولات در " + DateTime.Now.ToString("HH:mm:ss");
+        StateHasChanged();
+        JSRuntime.InvokeVoidAsync("location.replace", "/admin/products");
+    }
+}
